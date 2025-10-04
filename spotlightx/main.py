@@ -23,7 +23,7 @@
 # SOFTWARE.
 
 """
-Main entry point for SpotlightX.
+Main entry point for SpotlightX — futuristic, fast Linux app launcher.
 """
 
 import sys
@@ -37,20 +37,21 @@ from spotlightx.ui import TkinterUI
 
 class SpotlightX:
     def __init__(self):
-        print("Initializing SpotlightX...")
+        print("🚀 Initializing SpotlightX...")
         
         self.indexer = Indexer()
         self.search_engine = SearchEngine(self.indexer)
         self.executor = Executor()
         self.plugin_manager = PluginManager()
         
-        print("Loading plugins...")
+        print("🔌 Loading plugins...")
         self.plugin_manager.load_all_plugins()
         self.plugin_manager.trigger_hook('on_startup')
         
-        print("Starting initial indexing...")
+        print("📂 Starting initial indexing in background...")
         self.indexer.index_all_async()
         
+        # Setup UI
         self.ui = TkinterUI(
             on_query_callback=self.handle_query,
             on_select_callback=self.handle_select
@@ -83,15 +84,15 @@ class SpotlightX:
     
     def signal_handler(self, sig, frame):
         """Handle shutdown signals."""
-        print("\nShutting down SpotlightX...")
+        print("\n🛑 Shutting down SpotlightX...")
         self.plugin_manager.trigger_hook('on_shutdown')
         sys.exit(0)
     
     def run(self):
         """Run the application."""
-        print("SpotlightX is ready!")
-        print("Press Ctrl+C to quit, or click the window to start searching")
-        self.ui.show()
+        print("✅ SpotlightX is ready!")
+        print("👉 Press Ctrl+C to quit, or use the search window directly")
+        self.ui.show()     # <<< langsung tampil
         self.ui.run()
 
 

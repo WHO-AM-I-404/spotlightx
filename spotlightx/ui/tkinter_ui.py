@@ -1,207 +1,218 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# SpotlightX - Sophisticated Linux Application Launcher
+# SpotlightX - Enhanced Tkinter UI (Glass Edition)
 # Copyright (c) 2025 WHO-AM-I-404
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-"""
-Tkinter UI fallback for SpotlightX.
-Lightweight UI for development and systems without PySide6.
-"""
+# Lightweight “glass-style” UI for SpotlightX launcher.
+# Uses pure Tkinter — no heavy dependencies required.
 
 import tkinter as tk
-from tkinter import ttk
-from typing import List, Dict, Any, Callable, Optional
+from typing import List, Dict, Any, Callable
+import threading
+import time
 
 
 class TkinterUI:
     def __init__(self, on_query_callback: Callable, on_select_callback: Callable):
         self.on_query = on_query_callback
         self.on_select = on_select_callback
-        
+
+        # 🌟 Root window setup
         self.root = tk.Tk()
         self.root.title("SpotlightX")
         self.root.attributes('-topmost', True)
-        
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-        
-        window_width = 700
-        window_height = 500
-        
-        x = (screen_width - window_width) // 2
-        y = screen_height // 4
-        
-        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
-        
-        self.root.overrideredirect(True)
-        
-        self.setup_ui()
-        
+        self.root.overrideredirect(True)  # borderless
+
+        # 💎 Try to apply transparency (if supported)
+        try:
+            self.root.attributes('-alpha', 0.95)
+        except tk.TclError:
+            pass
+
+        # 🎨 Geometry setup
+        w, h = 700, 500
+        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
+        x, y = (sw - w) // 2, sh // 4
+        self.root.geometry(f"{w}x{h}+{x}+{y}")
+
+        # ⚙️ State variables
         self.results = []
         self.selected_index = 0
-        
-        self.root.bind('<Escape>', lambda e: self.hide())
-        self.root.bind('<Return>', lambda e: self.on_enter())
-        self.root.bind('<Up>', lambda e: self.navigate(-1))
-        self.root.bind('<Down>', lambda e: self.navigate(1))
-        
         self.visible = False
-    
-    def setup_ui(self):
-        """Setup UI components."""
-        main_frame = tk.Frame(self.root, bg='#1e1e1e', padx=10, pady=10)
-        main_frame.pack(fill=tk.BOTH, expand=True)
-        
-        self.search_entry = tk.Entry(
-            main_frame,
-            font=('Arial', 16),
+
+        # 🧱 Build UI components
+        self._build_interface()
+
+        # ⌨️ Key bindings
+        self.root.bind('<Escape>', lambda e: self.hide())
+        self.root.bind('<Return>', lambda e: self._on_enter())
+        self.root.bind('<Up>', lambda e: self._navigate(-1))
+        self.root.bind('<Down>', lambda e: self._navigate(1))
+
+    # --------------------------
+    # UI Building
+    # --------------------------
+
+    def _build_interface(self):
+        """Setup the main interface."""
+        main = tk.Frame(self.root, bg='#1e1e1e', padx=10, pady=10)
+        main.pack(fill=tk.BOTH, expand=True)
+
+        # 🔍 Search bar
+        self.entry = tk.Entry(
+            main,
+            font=('Segoe UI', 16),
             bg='#2d2d2d',
             fg='#ffffff',
             insertbackground='#ffffff',
             relief=tk.FLAT,
             borderwidth=0
         )
-        self.search_entry.pack(fill=tk.X, pady=(0, 10), ipady=8)
-        self.search_entry.insert(0, "Search apps, files, web...")
-        self.search_entry.bind('<FocusIn>', self.on_entry_focus_in)
-        self.search_entry.bind('<FocusOut>', self.on_entry_focus_out)
-        self.search_entry.bind('<KeyRelease>', self.on_key_release)
-        
-        results_frame = tk.Frame(main_frame, bg='#1e1e1e')
-        results_frame.pack(fill=tk.BOTH, expand=True)
-        
-        scrollbar = tk.Scrollbar(results_frame)
+        self.entry.pack(fill=tk.X, pady=(0, 10), ipady=8)
+        self.entry.insert(0, "Search apps, files, web...")
+        self.entry.config(fg='#888888')
+        self.entry.bind('<FocusIn>', self._focus_in)
+        self.entry.bind('<FocusOut>', self._focus_out)
+        self.entry.bind('<KeyRelease>', self._on_key)
+
+        # 📜 Results frame
+        result_frame = tk.Frame(main, bg='#1e1e1e')
+        result_frame.pack(fill=tk.BOTH, expand=True)
+
+        scrollbar = tk.Scrollbar(result_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        self.results_listbox = tk.Listbox(
-            results_frame,
-            font=('Arial', 11),
+
+        self.listbox = tk.Listbox(
+            result_frame,
+            font=('Segoe UI', 11),
             bg='#2d2d2d',
             fg='#ffffff',
             selectbackground='#0078d4',
             selectforeground='#ffffff',
             relief=tk.FLAT,
-            borderwidth=0,
             yscrollcommand=scrollbar.set,
             activestyle='none'
         )
-        self.results_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
-        scrollbar.config(command=self.results_listbox.yview)
-        
-        self.results_listbox.bind('<Double-Button-1>', lambda e: self.on_enter())
-    
-    def on_entry_focus_in(self, event):
-        """Clear placeholder on focus."""
-        if self.search_entry.get() == "Search apps, files, web...":
-            self.search_entry.delete(0, tk.END)
-            self.search_entry.config(fg='#ffffff')
-    
-    def on_entry_focus_out(self, event):
-        """Restore placeholder if empty."""
-        if not self.search_entry.get():
-            self.search_entry.insert(0, "Search apps, files, web...")
-            self.search_entry.config(fg='#888888')
-    
-    def on_key_release(self, event):
-        """Handle key release in search entry."""
+        self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=self.listbox.yview)
+
+        self.listbox.bind('<Double-Button-1>', lambda e: self._on_enter())
+
+    # --------------------------
+    # Input / Query Handling
+    # --------------------------
+
+    def _focus_in(self, _):
+        if self.entry.get() == "Search apps, files, web...":
+            self.entry.delete(0, tk.END)
+            self.entry.config(fg='#ffffff')
+
+    def _focus_out(self, _):
+        if not self.entry.get().strip():
+            self.entry.insert(0, "Search apps, files, web...")
+            self.entry.config(fg='#888888')
+
+    def _on_key(self, event):
         if event.keysym in ('Up', 'Down', 'Return', 'Escape'):
             return
-        
-        query = self.search_entry.get()
+        query = self.entry.get().strip()
         if query and query != "Search apps, files, web...":
             results = self.on_query(query)
-            self.display_results(results)
+            self._show_results(results)
         else:
-            self.clear_results()
-    
-    def display_results(self, results: List[Dict[str, Any]]):
-        """Display search results."""
+            self._clear_results()
+
+    def _show_results(self, results: List[Dict[str, Any]]):
         self.results = results
-        self.results_listbox.delete(0, tk.END)
-        
-        for result in results:
-            name = result.get('name', 'Unknown')
-            subtitle = result.get('subtitle', '')
-            display_text = f"{name}"
+        self.listbox.delete(0, tk.END)
+
+        for res in results:
+            name = res.get('name', 'Unknown')
+            subtitle = res.get('subtitle', '')
+            text = f"{name}"
             if subtitle:
-                display_text += f" — {subtitle[:60]}"
-            
-            self.results_listbox.insert(tk.END, display_text)
-        
+                text += f" — {subtitle[:60]}"
+            self.listbox.insert(tk.END, text)
+
         if results:
-            self.results_listbox.select_set(0)
+            self.listbox.select_set(0)
             self.selected_index = 0
-    
-    def clear_results(self):
-        """Clear results list."""
+
+    def _clear_results(self):
         self.results = []
-        self.results_listbox.delete(0, tk.END)
+        self.listbox.delete(0, tk.END)
         self.selected_index = 0
-    
-    def navigate(self, direction: int):
-        """Navigate through results."""
+
+    def _navigate(self, direction: int):
         if not self.results:
             return
-        
-        self.results_listbox.select_clear(self.selected_index)
-        
+        self.listbox.select_clear(self.selected_index)
         self.selected_index = (self.selected_index + direction) % len(self.results)
-        
-        self.results_listbox.select_set(self.selected_index)
-        self.results_listbox.see(self.selected_index)
-    
-    def on_enter(self):
-        """Handle Enter key."""
+        self.listbox.select_set(self.selected_index)
+        self.listbox.see(self.selected_index)
+
+    def _on_enter(self):
         if self.results and 0 <= self.selected_index < len(self.results):
-            selected_result = self.results[self.selected_index]
-            self.on_select(selected_result)
+            selected = self.results[self.selected_index]
+            self.on_select(selected)
             self.hide()
-    
+
+    # --------------------------
+    # Window Show/Hide Logic
+    # --------------------------
+
     def show(self):
-        """Show the window."""
         if not self.visible:
             self.root.deiconify()
             self.root.lift()
             self.root.focus_force()
-            self.search_entry.focus_set()
-            self.search_entry.select_range(0, tk.END)
+            self.entry.focus_set()
+            self.entry.select_range(0, tk.END)
+            self._fade_in()
             self.visible = True
-    
+
     def hide(self):
-        """Hide the window."""
         if self.visible:
-            self.root.withdraw()
+            self._fade_out()
             self.visible = False
-            self.clear_results()
-    
+            self._clear_results()
+
     def toggle(self):
-        """Toggle window visibility."""
         if self.visible:
             self.hide()
         else:
             self.show()
-    
+
+    # --------------------------
+    # Simple Fade Animations
+    # --------------------------
+
+    def _fade_in(self):
+        def _animate():
+            for alpha in range(0, 96, 5):
+                try:
+                    self.root.attributes('-alpha', alpha / 100)
+                    time.sleep(0.01)
+                except tk.TclError:
+                    break
+        threading.Thread(target=_animate, daemon=True).start()
+
+    def _fade_out(self):
+        def _animate():
+            for alpha in range(95, -1, -5):
+                try:
+                    self.root.attributes('-alpha', alpha / 100)
+                    time.sleep(0.01)
+                except tk.TclError:
+                    break
+            self.root.withdraw()
+        threading.Thread(target=_animate, daemon=True).start()
+
+    # --------------------------
+    # Loop
+    # --------------------------
+
     def run(self):
-        """Run the Tkinter main loop."""
         self.root.withdraw()
         self.root.mainloop()
