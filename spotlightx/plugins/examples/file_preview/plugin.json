@@ -1,0 +1,8 @@
+{
+  "id": "file_preview",
+  "name": "File Preview",
+  "version": "1.0.0",
+  "description": "Quick preview for images, text, and PDF files",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}

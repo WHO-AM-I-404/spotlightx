@@ -1,0 +1,8 @@
+{
+  "id": "clipboard_history",
+  "name": "Clipboard History",
+  "version": "1.0.0",
+  "description": "Store and paste previous clipboard entries",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}

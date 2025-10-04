@@ -1,0 +1,8 @@
+{
+  "id": "battery_notifier",
+  "name": "Battery Notifier",
+  "version": "1.0.0",
+  "description": "Monitor battery status and send notifications",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}

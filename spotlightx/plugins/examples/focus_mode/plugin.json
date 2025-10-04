@@ -1,0 +1,8 @@
+{
+  "id": "focus_mode",
+  "name": "Focus Mode",
+  "version": "1.0.0",
+  "description": "Toggle Do Not Disturb and focus mode",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}

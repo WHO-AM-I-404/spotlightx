@@ -1,0 +1,8 @@
+{
+  "id": "context_menu",
+  "name": "Context Menu Enhancer",
+  "version": "1.0.0",
+  "description": "Add quick actions to search results",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}

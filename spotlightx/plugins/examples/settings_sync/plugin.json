@@ -1,0 +1,8 @@
+{
+  "id": "settings_sync",
+  "name": "Settings Sync",
+  "version": "1.0.0",
+  "description": "Sync settings via GitHub Gist or manual export/import",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}

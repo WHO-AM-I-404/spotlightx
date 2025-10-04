@@ -1,0 +1,8 @@
+{
+  "id": "web_shortcuts",
+  "name": "Web Search Shortcuts",
+  "version": "1.0.0",
+  "description": "Extended web search shortcuts (already built into search engine)",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}

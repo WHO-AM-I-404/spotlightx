@@ -1,0 +1,8 @@
+{
+  "id": "drag_drop",
+  "name": "Drag & Drop Integration",
+  "version": "1.0.0",
+  "description": "Helper for drag and drop file operations",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}

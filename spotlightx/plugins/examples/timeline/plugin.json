@@ -1,0 +1,8 @@
+{
+  "id": "timeline",
+  "name": "Spotlight Timeline",
+  "version": "1.0.0",
+  "description": "Track activity and boost frequently used items",
+  "author": "WHO-AM-I-404",
+  "enabled": false
+}
